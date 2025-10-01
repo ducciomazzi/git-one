@@ -15,6 +15,7 @@ ARCHITECTURE structural OF TOP_TRIS IS
 	
 	COMPONENT TRIS_FSM
 	PORT (
+		Input : in  std_logic_vector  (8 downto 0);
 		ff_inputA, ff_inputB : in std_logic_vector (8 downto 0);
 		clock, reset : in std_logic;
 		ff_enableA, ff_enableB: out std_logic;
@@ -31,24 +32,32 @@ ARCHITECTURE structural OF TOP_TRIS IS
 		RDN: out std_logic);
 	end COMPONENT;
 	
-	SIGNAL OutputFFA, OutputFFB : std_logic_vector (8 downto 0);
+	SIGNAL OutputFFA, OutputFFB, InputFFA, InputFFB : std_logic_vector (8 downto 0) := "000000000";
 	SIGNAL ff_en_A, ff_en_B : std_logic;
 	SIGNAL clk_ff_A, clk_ff_B : std_logic;
 	
 	BEGIN
 	
+	gen_input_ffa : for I in 1 to 9 generate
+		InputFFA (I-1) <= (Input(I-1) OR OutputFFA(I-1)) AND NOT OutputFFB(I-1);
+	end generate;
+	
+	gen_input_ffb : for I in 1 to 9 generate
+		InputFFB(I-1) <= (Input(I-1) OR OutputFFB(I-1)) AND NOT OutputFFA(I-1);
+	end generate;
+	
 	clk_ff_A <= clock AND ff_en_A;
 	clk_ff_B <= clock AND ff_en_B;
 	
 	gen_ffa : for I in 1 to 9 generate
-		FFIA : FLIPFLOP port map (clk_ff_A, reset, Input(I-1), OutputFFA(I-1));
+		FFIA : FLIPFLOP port map (clk_ff_A, reset, InputFFA(I-1), OutputFFA(I-1));
 	end generate;
 	
 	gen_ffb : for I in 1 to 9 generate
-		FFIB : FLIPFLOP port map (clk_ff_B, reset, Input(I-1), OutputFFB(I-1));
+		FFIB : FLIPFLOP port map (clk_ff_B, reset, InputFFB(I-1), OutputFFB(I-1));
 	end generate;
 	
-	fsm : TRIS_FSM port map (OutputFFA, OutputFFB, clock, reset, ff_en_A, ff_en_B, turn_light);
+	fsm : TRIS_FSM port map (Input, OutputFFA, OutputFFB, clock, reset, ff_en_A, ff_en_B, turn_light);
 			
 	ff_outA <= OutputFFA;
 	ff_outB <= OutputFFB;

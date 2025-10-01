@@ -3,6 +3,7 @@ USE ieee.std_logic_1164.all;
 
 ENTITY TRIS_FSM IS
 PORT (
+	Input : in  std_logic_vector (8 downto 0);
 	ff_inputA, ff_inputB : in std_logic_vector (8 downto 0);
 	clock, reset : in std_logic;
 	ff_enableA, ff_enableB: out std_logic;
@@ -13,10 +14,10 @@ END TRIS_FSM;
 
 ARCHITECTURE FSM OF Tris_FSM IS
 	
-	TYPE State_type IS (M_Reset, M_TurnA, M_TurnB, M_TurnA_Int, M_TurnB_Int, M_WinA, M_WinB);  --stati possibili della macchina a stati
+	TYPE State_type IS (M_Reset, M_TurnA, M_TurnB, M_WinA, M_WinB);  --stati possibili della macchina a stati
 
 	SIGNAL y_Q, Y_D : State_type := M_Reset; -- y_Q stato presente, Y_D stato futuro
-	SIGNAL winA, winB : std_logic;
+	SIGNAL winA, winB : std_logic := '0';
 	
 	BEGIN
 	
@@ -50,7 +51,7 @@ ARCHITECTURE FSM OF Tris_FSM IS
 		END IF;
 	END PROCESS;
 
-	next_state : PROCESS (y_Q, ff_inputA, ff_inputB) --determina il prossimo stato
+	next_state : PROCESS (y_Q, Input) --determina il prossimo stato
 		BEGIN
 		CASE y_Q IS
 			WHEN M_Reset => 
@@ -61,7 +62,7 @@ ARCHITECTURE FSM OF Tris_FSM IS
 					y_D <= M_WinA;
 				ELSIF (winB = '1') THEN
 					y_D <= M_WinB;
-				ELSIF (rising_edge(ff_inputA(0)) OR rising_edge(ff_inputA(1)) OR rising_edge(ff_inputA(2)) OR rising_edge(ff_inputA(3)) OR rising_edge(ff_inputA(4)) OR rising_edge(ff_inputA(5)) OR rising_edge(ff_inputA(6)) OR rising_edge(ff_inputA(7)) OR rising_edge(ff_inputA(8))) THEN
+				ELSIF (Input = "000000000") THEN
 					y_D <=  M_TurnB;
 				ELSE 
 					y_D <=  M_TurnA;
@@ -72,7 +73,7 @@ ARCHITECTURE FSM OF Tris_FSM IS
 					y_D <= M_WinA;
 				ELSIF (winB = '1') THEN
 					y_D <= M_WinB;
-				ELSIF (rising_edge(ff_inputB(0)) OR rising_edge(ff_inputB(1)) OR rising_edge(ff_inputB(2)) OR rising_edge(ff_inputB(3)) OR rising_edge(ff_inputB(4)) OR rising_edge(ff_inputB(5)) OR rising_edge(ff_inputB(6)) OR rising_edge(ff_inputB(7)) OR rising_edge(ff_inputB(8))) THEN
+				ELSIF (Input = "000000000") THEN
 					y_D <=  M_TurnA;
 				ELSE 
 					y_D <=  M_TurnB;
@@ -84,27 +85,27 @@ ARCHITECTURE FSM OF Tris_FSM IS
 			WHEN M_WinB =>
 				y_D <= M_WinB;	
 
-			WHEN M_TurnA_Int =>
-				IF (winA = '1') THEN
-					y_D <= M_WinA;
-				ELSIF (winB = '1') THEN
-					y_D <= M_WinB;
-				ELSIF (falling_edge(ff_inputA(0)) OR falling_edge(ff_inputA(1)) OR falling_edge(ff_inputA(2)) OR falling_edge(ff_inputA(3)) OR falling_edge(ff_inputA(4)) OR falling_edge(ff_inputA(5)) OR falling_edge(ff_inputA(6)) OR falling_edge(ff_inputA(7)) OR falling_edge(ff_inputA(8))) THEN
-					y_D <=  M_TurnB;
-				ELSE 
-					y_D <=  M_TurnA_Int;
-				END IF;
+			-- WHEN M_TurnA_Int =>
+				-- IF (winA = '1') THEN
+					-- y_D <= M_WinA;
+				-- ELSIF (winB = '1') THEN
+					-- y_D <= M_WinB;
+				-- ELSIF (falling_edge(ff_inputA(0)) OR falling_edge(ff_inputA(1)) OR falling_edge(ff_inputA(2)) OR falling_edge(ff_inputA(3)) OR falling_edge(ff_inputA(4)) OR falling_edge(ff_inputA(5)) OR falling_edge(ff_inputA(6)) OR falling_edge(ff_inputA(7)) OR falling_edge(ff_inputA(8))) THEN
+					-- y_D <=  M_TurnB;
+				-- ELSE 
+					-- y_D <=  M_TurnA_Int;
+				-- END IF;
 			
-			WHEN M_TurnB_Int =>
-				IF (winA = '1') THEN
-					y_D <= M_WinA;
-				ELSIF (winB = '1') THEN
-					y_D <= M_WinB;
-				ELSIF (falling_edge(ff_inputB(0)) OR falling_edge(ff_inputB(1)) OR falling_edge(ff_inputB(2)) OR falling_edge(ff_inputB(3)) OR falling_edge(ff_inputB(4)) OR falling_edge(ff_inputB(5)) OR falling_edge(ff_inputB(6)) OR falling_edge(ff_inputB(7)) OR falling_edge(ff_inputB(8))) THEN
-					y_D <=  M_TurnA;
-				ELSE 
-					y_D <=  M_TurnB_Int;
-				END IF;
+			-- WHEN M_TurnB_Int =>
+				-- IF (winA = '1') THEN
+					-- y_D <= M_WinA;
+				-- ELSIF (winB = '1') THEN
+					-- y_D <= M_WinB;
+				-- ELSIF (falling_edge(ff_inputB(0)) OR falling_edge(ff_inputB(1)) OR falling_edge(ff_inputB(2)) OR falling_edge(ff_inputB(3)) OR falling_edge(ff_inputB(4)) OR falling_edge(ff_inputB(5)) OR falling_edge(ff_inputB(6)) OR falling_edge(ff_inputB(7)) OR falling_edge(ff_inputB(8))) THEN
+					-- y_D <=  M_TurnA;
+				-- ELSE 
+					-- y_D <=  M_TurnB_Int;
+				-- END IF;
 		END CASE;
 	END PROCESS;
 
@@ -133,13 +134,13 @@ ARCHITECTURE FSM OF Tris_FSM IS
 						ff_enableB <= '0';
 						turn_light <= '1';
 
-		WHEN M_TurnA_Int =>ff_enableA <= '0';
-						ff_enableB <= '0';
-						turn_light <= '0';
+		-- WHEN M_TurnA_Int =>ff_enableA <= '0';
+						-- ff_enableB <= '0';
+						-- turn_light <= '0';
 						
-		WHEN M_TurnB_Int =>ff_enableA <= '0';
-						ff_enableB <= '0';
-						turn_light <= '1';
+		-- WHEN M_TurnB_Int =>ff_enableA <= '0';
+						-- ff_enableB <= '0';
+						-- turn_light <= '1';
 						
 			
 		WHEN OTHERS =>	ff_enableA <= '0';

@@ -51,7 +51,7 @@ architecture TEST of TB_TRIS is
 		PRN_I <= "000000000";
 		wait for 4 * PERIOD;
 
-		PRN_I <= "000000010";
+		PRN_I <= "000000001";
 		wait for 4 * PERIOD;
 
 		PRN_I <= "000000000";
